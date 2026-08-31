@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Geovision SWE Patch Comparison</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>Geovision SWE Patch Comparison</h1>
+            <p>Upload two GeoTIFF files to compare them with the pre-trained Siamese Attention U-Net model.</p>
+        </header>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('compare') }}" method="post" enctype="multipart/form-data" class="card">
+            <div class="field">
+                <label for="file1">GeoTIFF A (.tif / .tiff)</label>
+                <input id="file1" type="file" name="file1" accept=".tif,.tiff" required>
+            </div>
+            <div class="field">
+                <label for="file2">GeoTIFF B (.tif / .tiff)</label>
+                <input id="file2" type="file" name="file2" accept=".tif,.tiff" required>
+            </div>
+            <button type="submit">Compare patches</button>
+        </form>
+    </main>
+</body>
+</html>

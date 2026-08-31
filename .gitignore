@@ -1,0 +1,7 @@
+.venv/
+geovision-flask-env/
+__pycache__/
+*.pyc
+.DS_Store
+geovision_uploads_*/
+models/

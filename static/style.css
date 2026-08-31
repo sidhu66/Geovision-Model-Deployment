@@ -1,0 +1,140 @@
+:root {
+    color-scheme: light;
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.5;
+    color: #1f2937;
+    background: #f8fafc;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+}
+
+header h1 {
+    margin-bottom: 0.25rem;
+    font-size: 2rem;
+}
+
+header p {
+    margin-top: 0;
+    color: #475569;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.25rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.field {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+input[type="file"] {
+    width: 100%;
+}
+
+button {
+    border: 0;
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    background: #0f172a;
+    color: #ffffff;
+    font: inherit;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1e293b;
+}
+
+.alert {
+    background: #fff7ed;
+    border-color: #fdba74;
+    color: #9a3412;
+}
+
+.score-card .score {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.25rem 0;
+}
+
+.interpretation {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.caveat,
+.file-list,
+figure dl {
+    color: #475569;
+}
+
+.preview-grid,
+.details-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .preview-grid,
+    .details-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+figure {
+    margin: 0;
+}
+
+figure img {
+    width: 100%;
+    max-width: 280px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+figure dl {
+    margin: 0.75rem 0 0;
+}
+
+figure dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.35rem;
+}
+
+figure dt {
+    font-weight: 600;
+}
+
+figure dd {
+    margin: 0;
+}
+
+ul {
+    padding-left: 1.1rem;
+}

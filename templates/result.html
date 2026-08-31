@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Comparison Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>Comparison Result</h1>
+            <p><a href="{{ url_for('index') }}">Upload another pair</a></p>
+        </header>
+
+        <section class="card">
+            <h2>Input files</h2>
+            <ul class="file-list">
+                <li><strong>File 1:</strong> {{ file1_name }}</li>
+                <li><strong>File 2:</strong> {{ file2_name }}</li>
+            </ul>
+        </section>
+
+        <section class="card score-card">
+            <h2>Similarity score</h2>
+            <p class="score">{{ "%.4f"|format(similarity_score) }}</p>
+            <p class="interpretation">{{ interpretation }}</p>
+            <p class="caveat">
+                Interpretation thresholds are heuristic application defaults
+                (high &ge; 0.80, moderate 0.50&ndash;0.79, low &lt; 0.50).
+                They are not scientifically validated.
+            </p>
+        </section>
+
+        {% if warnings %}
+        <section class="card alert">
+            <h2>Warnings</h2>
+            {% for warning in warnings %}
+            <p>{{ warning }}</p>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <section class="card">
+            <h2>Processed patch previews</h2>
+            <div class="preview-grid">
+                <figure>
+                    <figcaption>Input A</figcaption>
+                    <img src="data:image/png;base64,{{ preview1 }}" alt="Processed preview for file 1">
+                    <dl>
+                        <div><dt>Original dimensions</dt><dd>{{ meta1.original_dimensions }}</dd></div>
+                        <div><dt>Processed dimensions</dt><dd>{{ meta1.processed_dimensions }}</dd></div>
+                        <div><dt>Min / Max</dt><dd>{{ "%.4f"|format(meta1.normalized_min) }} / {{ "%.4f"|format(meta1.normalized_max) }}</dd></div>
+                        <div><dt>Zero / NoData</dt><dd>{{ meta1.zero_percentage_display }}</dd></div>
+                    </dl>
+                </figure>
+                <figure>
+                    <figcaption>Input B</figcaption>
+                    <img src="data:image/png;base64,{{ preview2 }}" alt="Processed preview for file 2">
+                    <dl>
+                        <div><dt>Original dimensions</dt><dd>{{ meta2.original_dimensions }}</dd></div>
+                        <div><dt>Processed dimensions</dt><dd>{{ meta2.processed_dimensions }}</dd></div>
+                        <div><dt>Min / Max</dt><dd>{{ "%.4f"|format(meta2.normalized_min) }} / {{ "%.4f"|format(meta2.normalized_max) }}</dd></div>
+                        <div><dt>Zero / NoData</dt><dd>{{ meta2.zero_percentage_display }}</dd></div>
+                    </dl>
+                </figure>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Preprocessing details</h2>
+            <div class="details-grid">
+                <div>
+                    <h3>File A</h3>
+                    <ul>
+                        <li><strong>Original:</strong> {{ meta1.original_dimensions }}</li>
+                        <li><strong>Processed:</strong> {{ meta1.processed_dimensions }}</li>
+                        <li><strong>Normalization:</strong> /255</li>
+                        <li><strong>NoData pixels:</strong> {{ meta1.nodata_pixel_count }}</li>
+                        <li><strong>NaN replaced:</strong> {{ meta1.nan_count }}</li>
+                        <li><strong>Infinity replaced:</strong> {{ meta1.inf_count }}</li>
+                        <li><strong>Resized:</strong> {{ "Yes" if meta1.resized else "No" }}</li>
+                        <li><strong>Zero pixels:</strong> {{ meta1.zero_percentage_display }}</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>File B</h3>
+                    <ul>
+                        <li><strong>Original:</strong> {{ meta2.original_dimensions }}</li>
+                        <li><strong>Processed:</strong> {{ meta2.processed_dimensions }}</li>
+                        <li><strong>Normalization:</strong> /255</li>
+                        <li><strong>NoData pixels:</strong> {{ meta2.nodata_pixel_count }}</li>
+                        <li><strong>NaN replaced:</strong> {{ meta2.nan_count }}</li>
+                        <li><strong>Infinity replaced:</strong> {{ meta2.inf_count }}</li>
+                        <li><strong>Resized:</strong> {{ "Yes" if meta2.resized else "No" }}</li>
+                        <li><strong>Zero pixels:</strong> {{ meta2.zero_percentage_display }}</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

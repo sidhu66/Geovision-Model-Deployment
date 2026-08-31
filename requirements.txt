@@ -1,0 +1,9 @@
+tensorflow==2.20.0
+numpy>=1.24
+matplotlib>=3.7
+Flask>=3.0
+werkzeug>=3.0
+opencv-python
+gunicorn>=21.2
+GDAL==3.13.3
+pytest>=8.0
