@@ -12,7 +12,7 @@ import numpy as np
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from src.inference import (  # noqa: E402
+from src.core.inference import (  # noqa: E402
     InferenceError,
     compare_patches,
     get_engine,

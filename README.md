@@ -20,19 +20,32 @@ The model is used **as-is**. It is **not** retrained or modified.
 - **Channels:** single channel only
 - **Dtype:** cast to `float32` at inference time
 
-### Preprocessing (Phase 2 / training-aligned)
+### Preprocessing (Phase 2)
 
-Phase 2 reproduces the professor's known training preprocessing:
+Phase 2 offers two application-level pipelines. Choose one on the upload form.
+
+| | **Tile (4a)** | **Resize (4b, default)** |
+|--|----------------|--------------------------|
+| **Operation** | Non-overlapping `arr[y:y+72, x:x+72]` slices | `cv2.resize(arr, (72, 72), INTER_NEAREST)` |
+| **Output** | Many 72×72 patches per file | One 72×72 patch per file |
+| **Spatial meaning** | Each patch is a native-resolution sub-region | The whole raster is compressed into 72×72 |
+| **Aligned with** | Training patch generation | Trend / inference scripts |
+
+Shared cleanup before either path:
 
 ```
 GeoTIFF
   → first raster band
-  → NoData → 0
-  → resize to 72×72 using INTER_NEAREST (if needed)
+  → NoData / NaN / Inf → 0
+  → Tile (4a) or Resize (4b)
   → add channel dimension
   → divide by 255
   → Siamese model
 ```
+
+`preprocess_tiff()` remains a backward-compatible alias for resize mode.
+
+**Tile mode constraints:** both uploads must have identical pixel dimensions. Remainder pixels on the right and bottom edges are discarded. Empty patches are kept and warned about if more than 50% of pixels are zero. Each patch pair is one model inference, so N patches means N forward passes.
 
 No additional normalization, clipping, standardization, or scaling is applied.
 
@@ -88,7 +101,7 @@ python scripts/test_inference.py \
 
 ```python
 import numpy as np
-from src.inference import compare_patches
+from src.core.inference import compare_patches
 
 patch1 = np.random.rand(72, 72)
 patch2 = patch1.copy()
@@ -113,7 +126,7 @@ print(result["interpretation"])
 From the project root:
 
 ```bash
-python app.py
+python -m src
 ```
 
 Open: **http://127.0.0.1:5000/**
@@ -121,19 +134,19 @@ Open: **http://127.0.0.1:5000/**
 Production-style launch (optional):
 
 ```bash
-gunicorn -w 1 -b 127.0.0.1:5000 app:app
+gunicorn -w 1 -b 127.0.0.1:5000 "src.web.app:app"
 ```
 
 ### Upload workflow
 
 1. Upload **GeoTIFF A** and **GeoTIFF B** on the home page.
-2. Form field names: **`file1`** and **`file2`**
-3. Allowed extensions: `.tif`, `.tiff`
-4. Maximum upload size: 50 MB per request
-5. The backend preprocesses both rasters, runs the Siamese model once, and shows:
-   - similarity score
-   - heuristic interpretation
-   - 72×72 preview images
+2. Choose **Resize (4b)** or **Tile (4a)**. Resize is the default.
+3. Form field names: **`file1`**, **`file2`**, and **`pipeline`** (`resize` or `tile`)
+4. Allowed extensions: `.tif`, `.tiff`
+5. Maximum upload size: 50 MB per request
+6. The backend preprocesses both rasters and shows:
+   - **Resize:** one similarity score, heuristic interpretation, and 72×72 previews
+   - **Tile:** per-patch similarity scores and previews for the highest- and lowest-scoring pairs
    - preprocessing metadata for reproducibility
 
 Uploaded files are stored only in a temporary directory for the duration of the request and are deleted afterward.
@@ -146,27 +159,13 @@ Uploaded files are stored only in a temporary directory for the duration of the 
 - **Interpretation:** High similarity
 - **Preprocessing details:** original dimensions, resize status, NoData counts, zero percentage
 
-### Run tests
-
-```bash
-pytest tests/ -v
-```
-
-Tests use synthetic GeoTIFF fixtures and do not require real SNODAS data.
-
 ## Scientific caveat
 
-The current Phase 2 pipeline reproduces the known preprocessing from the professor's training code:
+The current Phase 2 pipeline reproduces the known preprocessing from the professor's training and trend code:
 
-```
-GeoTIFF
-  → first raster band
-  → NoData → 0
-  → resize to 72×72 using INTER_NEAREST
-  → add channel dimension
-  → divide by 255
-  → Siamese model
-```
+- **Tile (4a)** matches training-time patch slicing.
+- **Resize (4b)** matches the trend/inference whole-raster resize path.
+- Both then apply NoData cleanup, `/255` normalization, and a `(72, 72, 1)` channel dimension.
 
 However, we have **not** yet established:
 
@@ -182,16 +181,16 @@ Therefore, this Flask application is an **inference/demo system**, **not** yet t
 
 **Included now:**
 
-- SavedModel inference via `src/inference.py`
-- Professor-aligned GeoTIFF preprocessing via `src/tiff_preprocessing.py`
-- Flask upload/compare UI
-- Synthetic test coverage
+- SavedModel inference via `src/core/inference.py`
+- Professor-aligned GeoTIFF preprocessing via `src/core/tiff_preprocessing.py`
+- Resize (4b) and tile (4a) comparison pipelines via `src/core/pipeline.py`
+- Flask upload/compare UI with pipeline selection via `src/web/`
 
 **Not included yet:**
 
 - SNODAS/CEDA/ERA5 downloading
 - geographic reprojection
-- spatial tiling across large rasters
+- writing tiled GeoTIFF patches to disk
 - regression, Mann-Kendall, changepoint analysis
 - ecosystem analysis
 - model retraining or fine-tuning
@@ -201,21 +200,25 @@ Therefore, this Flask application is an **inference/demo system**, **not** yet t
 
 ```
 Geovision-Model-Deployment/
-├── app.py
 ├── src/
-│   ├── inference.py
-│   ├── tiff_preprocessing.py
-│   └── preview.py
+│   ├── __main__.py
+│   ├── paths.py
+│   ├── core/
+│   │   ├── inference.py
+│   │   ├── tiff_preprocessing.py
+│   │   ├── pipeline.py
+│   │   └── preview.py
+│   └── web/
+│       ├── app.py
+│       ├── templates/
+│       │   ├── index.html
+│       │   └── result.html
+│       └── static/
+│           └── style.css
 ├── models/
 │   └── siamese_unet_model/
-├── templates/
-│   ├── index.html
-│   └── result.html
-├── static/
-│   └── style.css
 ├── scripts/
 │   └── test_inference.py
-├── tests/
 ├── data/
 ├── results/
 ├── requirements.txt

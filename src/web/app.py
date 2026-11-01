@@ -12,14 +12,16 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 
-from src.inference import InferenceError, compare_patches, get_engine
-from src.preview import patch_to_base64_png
-from src.tiff_preprocessing import (
+from src.core.inference import InferenceError, get_engine
+from src.core.pipeline import VALID_PIPELINES, run_comparison
+from src.core.tiff_preprocessing import (
     EmptyRasterError,
     InvalidTiffError,
+    PatchGridMismatchError,
     TiffPreprocessingError,
-    preprocess_tiff,
 )
+
+WEB_DIR = Path(__file__).resolve().parent
 
 ALLOWED_EXTENSIONS = {".tif", ".tiff"}
 MAX_CONTENT_LENGTH = 50 * 1024 * 1024
@@ -30,7 +32,16 @@ INTERPRETATION_LABELS = {
     "low_similarity": "Low similarity",
 }
 
-app = Flask(__name__)
+PIPELINE_LABELS = {
+    "resize": "Resize (4b)",
+    "tile": "Tile (4a)",
+}
+
+app = Flask(
+    __name__,
+    template_folder=str(WEB_DIR / "templates"),
+    static_folder=str(WEB_DIR / "static"),
+)
 app.secret_key = os.getenv("SECRET_KEY", "dev_secret_change_me")
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
@@ -49,16 +60,31 @@ def _interpretation_label(interpretation: str) -> str:
 
 
 def _format_metadata(metadata: dict) -> dict:
-    return {
+    formatted = {
         **metadata,
         "zero_percentage_display": f"{metadata['zero_percentage'] * 100:.1f}%",
-        "processed_dimensions": (
-            f"{metadata['output_shape'][0]} x {metadata['output_shape'][1]} "
-            f"x {metadata['output_shape'][2]}"
-        ),
         "original_dimensions": (
             f"{metadata['original_width']} x {metadata['original_height']}"
         ),
+    }
+    if metadata.get("pipeline") == "tile":
+        formatted["processed_dimensions"] = (
+            f"{metadata['patch_count']} patches of "
+            f"{metadata['output_shape'][0]} x {metadata['output_shape'][1]} "
+            f"x {metadata['output_shape'][2]}"
+        )
+    else:
+        formatted["processed_dimensions"] = (
+            f"{metadata['output_shape'][0]} x {metadata['output_shape'][1]} "
+            f"x {metadata['output_shape'][2]}"
+        )
+    return formatted
+
+
+def _format_patch_record(record: dict) -> dict:
+    return {
+        **record,
+        "zero_percentage_display": f"{record['zero_percentage'] * 100:.1f}%",
     }
 
 
@@ -86,6 +112,24 @@ def _validate_upload(field_name: str):
     return file_storage
 
 
+def _selected_pipeline() -> str:
+    pipeline = request.form.get("pipeline", "resize")
+    if pipeline not in VALID_PIPELINES:
+        raise InvalidTiffError(
+            "Invalid pipeline selection. Choose Resize (4b) or Tile (4a)."
+        )
+    return pipeline
+
+
+def _format_preview_pair(pair: dict) -> dict:
+    return {
+        **pair,
+        "interpretation_label": _interpretation_label(str(pair["interpretation"])),
+        "meta1": _format_patch_record(pair["meta1"]),
+        "meta2": _format_patch_record(pair["meta2"]),
+    }
+
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -99,34 +143,58 @@ def compare():
     try:
         file1 = _validate_upload("file1")
         file2 = _validate_upload("file2")
+        pipeline = _selected_pipeline()
 
         path1, name1 = _save_upload(file1, temp_dir)
         path2, name2 = _save_upload(file2, temp_dir)
         saved_paths.extend([path1, path2])
 
-        patch1, meta1 = preprocess_tiff(path1)
-        patch2, meta2 = preprocess_tiff(path2)
+        result = run_comparison(path1, path2, pipeline=pipeline)
 
-        result = compare_patches(patch1, patch2)
+        context = {
+            "mode": result["mode"],
+            "pipeline_label": PIPELINE_LABELS[result["mode"]],
+            "file1_name": name1,
+            "file2_name": name2,
+            "meta1": _format_metadata(result["meta1"]),
+            "meta2": _format_metadata(result["meta2"]),
+            "warnings": result.get("warnings", []),
+        }
 
-        return render_template(
-            "result.html",
-            file1_name=name1,
-            file2_name=name2,
-            similarity_score=result["similarity_score"],
-            interpretation=_interpretation_label(str(result["interpretation"])),
-            interpretation_key=result["interpretation"],
-            preview1=patch_to_base64_png(patch1),
-            preview2=patch_to_base64_png(patch2),
-            meta1=_format_metadata(meta1),
-            meta2=_format_metadata(meta2),
-            warnings=meta1.get("warnings", []) + meta2.get("warnings", []),
-        )
+        if result["mode"] == "tile":
+            context.update({
+                "summary": result["summary"],
+                "patch_results": [
+                    {
+                        **item,
+                        "interpretation_label": _interpretation_label(
+                            str(item["interpretation"])
+                        ),
+                    }
+                    for item in result["patch_results"]
+                ],
+                "best_pair": _format_preview_pair(result["best_pair"]),
+                "worst_pair": _format_preview_pair(result["worst_pair"]),
+            })
+        else:
+            context.update({
+                "similarity_score": result["similarity_score"],
+                "interpretation": _interpretation_label(str(result["interpretation"])),
+                "interpretation_key": result["interpretation"],
+                "preview1": result["preview1"],
+                "preview2": result["preview2"],
+            })
+
+        return render_template("result.html", **context)
     except RequestEntityTooLarge:
         flash("Uploaded files exceed the 50 MB limit.")
         return redirect(url_for("index"))
     except EmptyRasterError as exc:
         logger.exception("Empty raster uploaded")
+        flash(str(exc))
+        return redirect(url_for("index"))
+    except PatchGridMismatchError as exc:
+        logger.exception("Tiled rasters do not share a patch grid")
         flash(str(exc))
         return redirect(url_for("index"))
     except InvalidTiffError as exc:
@@ -172,8 +240,3 @@ def _warm_up_model() -> None:
 
 
 _warm_up_model()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    app.run(host="127.0.0.1", port=5000, debug=True)

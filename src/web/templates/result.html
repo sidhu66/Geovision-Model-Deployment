@@ -18,9 +18,63 @@
             <ul class="file-list">
                 <li><strong>File 1:</strong> {{ file1_name }}</li>
                 <li><strong>File 2:</strong> {{ file2_name }}</li>
+                <li><strong>Pipeline:</strong> {{ pipeline_label }}</li>
             </ul>
         </section>
 
+        {% if mode == "tile" %}
+        <section class="card">
+            <h2>Similarity by patch</h2>
+            <p class="caveat">Compared {{ summary.count }} aligned 72&times;72 patch pair{{ "s" if summary.count != 1 else "" }}.</p>
+            <div class="patch-score-grid">
+                {% for item in patch_results %}
+                <article class="patch-score-card">
+                    <p class="patch-score-label">Patch {{ item.patch_index }}</p>
+                    <p class="patch-score-value">{{ "%.4f"|format(item.similarity_score) }}</p>
+                    <p class="patch-score-meta">{{ item.interpretation_label }}</p>
+                    <p class="patch-score-meta">row {{ item.row_offset }}, col {{ item.col_offset }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            <div class="table-wrap">
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Patch</th>
+                            <th>Row</th>
+                            <th>Column</th>
+                            <th>Similarity</th>
+                            <th>Interpretation</th>
+                            <th>Warnings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in patch_results %}
+                        <tr>
+                            <td>{{ item.patch_index }}</td>
+                            <td>{{ item.row_offset }}</td>
+                            <td>{{ item.col_offset }}</td>
+                            <td class="numeric">{{ "%.4f"|format(item.similarity_score) }}</td>
+                            <td>{{ item.interpretation_label }}</td>
+                            <td>
+                                {% if item.warnings %}
+                                {{ item.warnings | join("; ") }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="caveat">
+                Interpretation thresholds are heuristic application defaults
+                (high &ge; 0.80, moderate 0.50&ndash;0.79, low &lt; 0.50).
+                They are not scientifically validated.
+            </p>
+        </section>
+        {% else %}
         <section class="card score-card">
             <h2>Similarity score</h2>
             <p class="score">{{ "%.4f"|format(similarity_score) }}</p>
@@ -31,6 +85,7 @@
                 They are not scientifically validated.
             </p>
         </section>
+        {% endif %}
 
         {% if warnings %}
         <section class="card alert">
@@ -41,6 +96,29 @@
         </section>
         {% endif %}
 
+        {% if mode == "tile" %}
+        <section class="card">
+            <h2>Patch previews</h2>
+            <div class="preview-grid">
+                <figure>
+                    <figcaption>Highest score — patch {{ best_pair.patch_index }} ({{ "%.4f"|format(best_pair.similarity_score) }})</figcaption>
+                    <div class="pair-previews">
+                        <img src="data:image/png;base64,{{ best_pair.preview1 }}" alt="Highest-scoring preview for file 1">
+                        <img src="data:image/png;base64,{{ best_pair.preview2 }}" alt="Highest-scoring preview for file 2">
+                    </div>
+                    <p class="caveat">{{ best_pair.interpretation_label }} · row {{ best_pair.row_offset }}, column {{ best_pair.col_offset }}</p>
+                </figure>
+                <figure>
+                    <figcaption>Lowest score — patch {{ worst_pair.patch_index }} ({{ "%.4f"|format(worst_pair.similarity_score) }})</figcaption>
+                    <div class="pair-previews">
+                        <img src="data:image/png;base64,{{ worst_pair.preview1 }}" alt="Lowest-scoring preview for file 1">
+                        <img src="data:image/png;base64,{{ worst_pair.preview2 }}" alt="Lowest-scoring preview for file 2">
+                    </div>
+                    <p class="caveat">{{ worst_pair.interpretation_label }} · row {{ worst_pair.row_offset }}, column {{ worst_pair.col_offset }}</p>
+                </figure>
+            </div>
+        </section>
+        {% else %}
         <section class="card">
             <h2>Processed patch previews</h2>
             <div class="preview-grid">
@@ -66,6 +144,7 @@
                 </figure>
             </div>
         </section>
+        {% endif %}
 
         <section class="card">
             <h2>Preprocessing details</h2>
@@ -81,6 +160,9 @@
                         <li><strong>Infinity replaced:</strong> {{ meta1.inf_count }}</li>
                         <li><strong>Resized:</strong> {{ "Yes" if meta1.resized else "No" }}</li>
                         <li><strong>Zero pixels:</strong> {{ meta1.zero_percentage_display }}</li>
+                        {% if mode == "tile" %}
+                        <li><strong>Patch count:</strong> {{ meta1.patch_count }}</li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div>
@@ -94,6 +176,9 @@
                         <li><strong>Infinity replaced:</strong> {{ meta2.inf_count }}</li>
                         <li><strong>Resized:</strong> {{ "Yes" if meta2.resized else "No" }}</li>
                         <li><strong>Zero pixels:</strong> {{ meta2.zero_percentage_display }}</li>
+                        {% if mode == "tile" %}
+                        <li><strong>Patch count:</strong> {{ meta2.patch_count }}</li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

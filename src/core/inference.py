@@ -8,6 +8,8 @@ from typing import Any
 
 import numpy as np
 
+from src.paths import REPO_ROOT
+
 PATCH_HEIGHT = 72
 PATCH_WIDTH = 72
 PATCH_CHANNELS = 1
@@ -17,8 +19,7 @@ DEFAULT_SIGNATURE = "serving_default"
 HIGH_SIMILARITY_THRESHOLD = 0.80
 MODERATE_SIMILARITY_THRESHOLD = 0.50
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-_DEFAULT_MODEL_PATH = _REPO_ROOT / "models" / "siamese_unet_model"
+_DEFAULT_MODEL_PATH = REPO_ROOT / "models" / "siamese_unet_model"
 
 
 class InferenceError(Exception):

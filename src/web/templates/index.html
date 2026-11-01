@@ -32,6 +32,23 @@
                 <label for="file2">GeoTIFF B (.tif / .tiff)</label>
                 <input id="file2" type="file" name="file2" accept=".tif,.tiff" required>
             </div>
+            <fieldset class="field pipeline-choice">
+                <legend>Preprocessing pipeline</legend>
+                <label class="radio-option">
+                    <input type="radio" name="pipeline" value="resize" checked>
+                    <span>
+                        <strong>Resize (4b)</strong>
+                        Compress the entire region to 72&times;72 (trend/inference path).
+                    </span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="pipeline" value="tile">
+                    <span>
+                        <strong>Tile (4a)</strong>
+                        Split into non-overlapping 72&times;72 patches and compare all aligned pairs (training path).
+                    </span>
+                </label>
+            </fieldset>
             <button type="submit">Compare patches</button>
         </form>
     </main>
