@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -48,20 +49,53 @@
                     <figcaption>Input A</figcaption>
                     <img src="data:image/png;base64,{{ preview1 }}" alt="Processed preview for file 1">
                     <dl>
-                        <div><dt>Original dimensions</dt><dd>{{ meta1.original_dimensions }}</dd></div>
-                        <div><dt>Processed dimensions</dt><dd>{{ meta1.processed_dimensions }}</dd></div>
-                        <div><dt>Min / Max</dt><dd>{{ "%.4f"|format(meta1.normalized_min) }} / {{ "%.4f"|format(meta1.normalized_max) }}</dd></div>
-                        <div><dt>Zero / NoData</dt><dd>{{ meta1.zero_percentage_display }}</dd></div>
+                        <div>
+                            <dt>Original dimensions</dt>
+                            <dd>{{ meta1.original_dimensions }}</dd>
+                        </div>
+                        <div>
+                            <dt>Processed dimensions</dt>
+                            <dd>{{ meta1.processed_dimensions }}</dd>
+                        </div>
+                        <div>
+                            <dt>Min / Max</dt>
+                            <dd>{{ "%.4f"|format(meta1.normalized_min) }} / {{ "%.4f"|format(meta1.normalized_max) }}</dd>
+                        </div>
+                        <div>
+                            <dt>NoData percentage</dt>
+                            <dd>{{ meta1.nodata_percentage_display }}</dd>
+                        </div>
+                        <div>
+                            <dt>Valid zero percentage</dt>
+                            <dd>{{ meta1.valid_zero_percentage_display }}</dd>
+                        </div>
                     </dl>
                 </figure>
+
                 <figure>
                     <figcaption>Input B</figcaption>
                     <img src="data:image/png;base64,{{ preview2 }}" alt="Processed preview for file 2">
                     <dl>
-                        <div><dt>Original dimensions</dt><dd>{{ meta2.original_dimensions }}</dd></div>
-                        <div><dt>Processed dimensions</dt><dd>{{ meta2.processed_dimensions }}</dd></div>
-                        <div><dt>Min / Max</dt><dd>{{ "%.4f"|format(meta2.normalized_min) }} / {{ "%.4f"|format(meta2.normalized_max) }}</dd></div>
-                        <div><dt>Zero / NoData</dt><dd>{{ meta2.zero_percentage_display }}</dd></div>
+                        <div>
+                            <dt>Original dimensions</dt>
+                            <dd>{{ meta2.original_dimensions }}</dd>
+                        </div>
+                        <div>
+                            <dt>Processed dimensions</dt>
+                            <dd>{{ meta2.processed_dimensions }}</dd>
+                        </div>
+                        <div>
+                            <dt>Min / Max</dt>
+                            <dd>{{ "%.4f"|format(meta2.normalized_min) }} / {{ "%.4f"|format(meta2.normalized_max) }}</dd>
+                        </div>
+                        <div>
+                            <dt>NoData percentage</dt>
+                            <dd>{{ meta2.nodata_percentage_display }}</dd>
+                        </div>
+                        <div>
+                            <dt>Valid zero percentage</dt>
+                            <dd>{{ meta2.valid_zero_percentage_display }}</dd>
+                        </div>
                     </dl>
                 </figure>
             </div>
@@ -77,12 +111,15 @@
                         <li><strong>Processed:</strong> {{ meta1.processed_dimensions }}</li>
                         <li><strong>Normalization:</strong> /255</li>
                         <li><strong>NoData pixels:</strong> {{ meta1.nodata_pixel_count }}</li>
+                        <li><strong>NoData percentage:</strong> {{ meta1.nodata_percentage_display }}</li>
+                        <li><strong>Valid zero pixels:</strong> {{ meta1.valid_zero_pixel_count }}</li>
+                        <li><strong>Valid zero percentage:</strong> {{ meta1.valid_zero_percentage_display }}</li>
                         <li><strong>NaN replaced:</strong> {{ meta1.nan_count }}</li>
                         <li><strong>Infinity replaced:</strong> {{ meta1.inf_count }}</li>
                         <li><strong>Resized:</strong> {{ "Yes" if meta1.resized else "No" }}</li>
-                        <li><strong>Zero pixels:</strong> {{ meta1.zero_percentage_display }}</li>
                     </ul>
                 </div>
+
                 <div>
                     <h3>File B</h3>
                     <ul>
@@ -90,10 +127,12 @@
                         <li><strong>Processed:</strong> {{ meta2.processed_dimensions }}</li>
                         <li><strong>Normalization:</strong> /255</li>
                         <li><strong>NoData pixels:</strong> {{ meta2.nodata_pixel_count }}</li>
+                        <li><strong>NoData percentage:</strong> {{ meta2.nodata_percentage_display }}</li>
+                        <li><strong>Valid zero pixels:</strong> {{ meta2.valid_zero_pixel_count }}</li>
+                        <li><strong>Valid zero percentage:</strong> {{ meta2.valid_zero_percentage_display }}</li>
                         <li><strong>NaN replaced:</strong> {{ meta2.nan_count }}</li>
                         <li><strong>Infinity replaced:</strong> {{ meta2.inf_count }}</li>
                         <li><strong>Resized:</strong> {{ "Yes" if meta2.resized else "No" }}</li>
-                        <li><strong>Zero pixels:</strong> {{ meta2.zero_percentage_display }}</li>
                     </ul>
                 </div>
             </div>

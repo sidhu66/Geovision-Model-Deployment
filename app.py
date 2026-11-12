@@ -8,18 +8,26 @@ import tempfile
 import uuid
 from pathlib import Path
 
+_gdal_dll_handle = os.add_dll_directory(
+    os.path.join(os.environ["CONDA_PREFIX"], "Library", "bin")
+)
+
 from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 
-from src.inference import InferenceError, compare_patches, get_engine
-from src.preview import patch_to_base64_png
+from osgeo import gdal
+
 from src.tiff_preprocessing import (
     EmptyRasterError,
     InvalidTiffError,
     TiffPreprocessingError,
     preprocess_tiff,
 )
+
+from src.inference import InferenceError, compare_patches, get_engine
+
+from src.preview import patch_to_base64_png
 
 ALLOWED_EXTENSIONS = {".tif", ".tiff"}
 MAX_CONTENT_LENGTH = 50 * 1024 * 1024
@@ -49,15 +57,32 @@ def _interpretation_label(interpretation: str) -> str:
 
 
 def _format_metadata(metadata: dict) -> dict:
+    total_pixels = metadata["original_width"] * metadata["original_height"]
+
     return {
         **metadata,
-        "zero_percentage_display": f"{metadata['zero_percentage'] * 100:.1f}%",
-        "processed_dimensions": (
-            f"{metadata['output_shape'][0]} x {metadata['output_shape'][1]} "
-            f"x {metadata['output_shape'][2]}"
+
+        "zero_percentage_display": (
+            f"{metadata['zero_percentage'] * 100:.1f}%"
         ),
+
+        "nodata_percentage_display": (
+            f"{metadata['nodata_pixel_count'] / total_pixels * 100:.2f}%"
+        ),
+
+        "valid_zero_percentage_display": (
+            f"{metadata['valid_zero_pixel_count'] / total_pixels * 100:.2f}%"
+        ),
+
+        "processed_dimensions": (
+            f"{metadata['output_shape'][0]} x "
+            f"{metadata['output_shape'][1]} x "
+            f"{metadata['output_shape'][2]}"
+        ),
+
         "original_dimensions": (
-            f"{metadata['original_width']} x {metadata['original_height']}"
+            f"{metadata['original_width']} x "
+            f"{metadata['original_height']}"
         ),
     }
 
