@@ -125,10 +125,17 @@ def preprocess_tiff(path: str | Path) -> tuple[np.ndarray, dict[str, Any]]:
 
         nodata_pixel_count = int(np.sum(nodata_mask))
 
+        # Count special values separately.
+        special_minus_one_count = int(np.sum(array == -1.0))
+        special_minus_two_count = int(np.sum(array == -2.0))
+
         # Count genuine zero-valued pixels separately from NoData.
         valid_zero_pixel_count = int(
             np.sum((array == 0.0) & ~nodata_mask)
         )
+
+        # Count positive SWE measurements.
+        positive_pixel_count = int(np.sum(array > 0.0))
 
         # Preserve the existing model input behavior.
         array[nodata_mask] = 0.0
@@ -153,9 +160,8 @@ def preprocess_tiff(path: str | Path) -> tuple[np.ndarray, dict[str, Any]]:
 
         warnings: list[str] = []
 
-        # Warn based on NoData coverage rather than combining it
-        # with genuine zero-valued SWE pixels.
-        if nodata_pixel_count / array.size > BLANK_TILE_ZERO_THRESHOLD:
+        # Warn when more than 50% of the raster consists of zero or NoData pixels.
+        if zero_percentage > BLANK_TILE_ZERO_THRESHOLD:
             warnings.append(BLANK_TILE_WARNING)
 
         resized = array.shape != (PATCH_HEIGHT, PATCH_WIDTH)
@@ -183,9 +189,12 @@ def preprocess_tiff(path: str | Path) -> tuple[np.ndarray, dict[str, Any]]:
             "normalized_min": float(np.min(normalized)),
             "normalized_max": float(np.max(normalized)),
             "nodata_pixel_count": nodata_pixel_count,
+            "special_minus_one_count": special_minus_one_count,
+            "special_minus_two_count": special_minus_two_count,
+            "positive_pixel_count": positive_pixel_count,
             "valid_zero_pixel_count": valid_zero_pixel_count,
             "valid_zero_percentage": (
-                valid_zero_pixel_count / array.shape[0] / array.shape[1]
+            valid_zero_pixel_count / (width * height)
             ),
             "nan_count": nan_count,
             "inf_count": inf_count,
