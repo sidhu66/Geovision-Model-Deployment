@@ -74,6 +74,18 @@ def _format_metadata(metadata: dict) -> dict:
             f"{metadata['valid_zero_pixel_count'] / total_pixels * 100:.2f}%"
         ),
 
+        "minus_one_percentage_display": (
+            f"{metadata['special_minus_one_count'] / total_pixels * 100:.2f}%"
+        ),
+
+        "minus_two_percentage_display": (
+            f"{metadata['special_minus_two_count'] / total_pixels * 100:.2f}%"
+        ),
+
+        "positive_percentage_display": (
+            f"{metadata['positive_pixel_count'] / total_pixels * 100:.2f}%"
+        ),
+
         "processed_dimensions": (
             f"{metadata['output_shape'][0]} x "
             f"{metadata['output_shape'][1]} x "

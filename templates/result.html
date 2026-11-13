@@ -45,9 +45,11 @@
         <section class="card">
             <h2>Processed patch previews</h2>
             <div class="preview-grid">
+
                 <figure>
                     <figcaption>Input A</figcaption>
                     <img src="data:image/png;base64,{{ preview1 }}" alt="Processed preview for file 1">
+
                     <dl>
                         <div>
                             <dt>Original dimensions</dt>
@@ -62,12 +64,24 @@
                             <dd>{{ "%.4f"|format(meta1.normalized_min) }} / {{ "%.4f"|format(meta1.normalized_max) }}</dd>
                         </div>
                         <div>
-                            <dt>NoData percentage</dt>
-                            <dd>{{ meta1.nodata_percentage_display }}</dd>
+                            <dt>NoData (-32768)</dt>
+                            <dd>{{ meta1.nodata_pixel_count }} ({{ meta1.nodata_percentage_display }})</dd>
                         </div>
                         <div>
-                            <dt>Valid zero percentage</dt>
-                            <dd>{{ meta1.valid_zero_percentage_display }}</dd>
+                            <dt>Value -1 (meaning unconfirmed)</dt>
+                            <dd>{{ meta1.special_minus_one_count }} ({{ meta1.minus_one_percentage_display }})</dd>
+                        </div>
+                        <div>
+                            <dt>Value -2 (meaning unconfirmed)</dt>
+                            <dd>{{ meta1.special_minus_two_count }} ({{ meta1.minus_two_percentage_display }})</dd>
+                        </div>
+                        <div>
+                            <dt>Genuine zero (0)</dt>
+                            <dd>{{ meta1.valid_zero_pixel_count }} ({{ meta1.valid_zero_percentage_display }})</dd>
+                        </div>
+                        <div>
+                            <dt>Positive SWE values</dt>
+                            <dd>{{ meta1.positive_pixel_count }} ({{ meta1.positive_percentage_display }})</dd>
                         </div>
                     </dl>
                 </figure>
@@ -75,6 +89,7 @@
                 <figure>
                     <figcaption>Input B</figcaption>
                     <img src="data:image/png;base64,{{ preview2 }}" alt="Processed preview for file 2">
+
                     <dl>
                         <div>
                             <dt>Original dimensions</dt>
@@ -89,31 +104,52 @@
                             <dd>{{ "%.4f"|format(meta2.normalized_min) }} / {{ "%.4f"|format(meta2.normalized_max) }}</dd>
                         </div>
                         <div>
-                            <dt>NoData percentage</dt>
-                            <dd>{{ meta2.nodata_percentage_display }}</dd>
+                            <dt>NoData (-32768)</dt>
+                            <dd>{{ meta2.nodata_pixel_count }} ({{ meta2.nodata_percentage_display }})</dd>
                         </div>
                         <div>
-                            <dt>Valid zero percentage</dt>
-                            <dd>{{ meta2.valid_zero_percentage_display }}</dd>
+                            <dt>Value -1 (meaning unconfirmed)</dt>
+                            <dd>{{ meta2.special_minus_one_count }} ({{ meta2.minus_one_percentage_display }})</dd>
+                        </div>
+                        <div>
+                            <dt>Value -2 (meaning unconfirmed)</dt>
+                            <dd>{{ meta2.special_minus_two_count }} ({{ meta2.minus_two_percentage_display }})</dd>
+                        </div>
+                        <div>
+                            <dt>Genuine zero (0)</dt>
+                            <dd>{{ meta2.valid_zero_pixel_count }} ({{ meta2.valid_zero_percentage_display }})</dd>
+                        </div>
+                        <div>
+                            <dt>Positive SWE values</dt>
+                            <dd>{{ meta2.positive_pixel_count }} ({{ meta2.positive_percentage_display }})</dd>
                         </div>
                     </dl>
                 </figure>
+
             </div>
         </section>
 
         <section class="card">
             <h2>Preprocessing details</h2>
             <div class="details-grid">
+
                 <div>
                     <h3>File A</h3>
                     <ul>
                         <li><strong>Original:</strong> {{ meta1.original_dimensions }}</li>
                         <li><strong>Processed:</strong> {{ meta1.processed_dimensions }}</li>
                         <li><strong>Normalization:</strong> /255</li>
-                        <li><strong>NoData pixels:</strong> {{ meta1.nodata_pixel_count }}</li>
-                        <li><strong>NoData percentage:</strong> {{ meta1.nodata_percentage_display }}</li>
-                        <li><strong>Valid zero pixels:</strong> {{ meta1.valid_zero_pixel_count }}</li>
-                        <li><strong>Valid zero percentage:</strong> {{ meta1.valid_zero_percentage_display }}</li>
+
+                        <li><strong>NoData (-32768):</strong> {{ meta1.nodata_pixel_count }} ({{ meta1.nodata_percentage_display }})</li>
+
+                        <li><strong>Value -1 (unconfirmed):</strong> {{ meta1.special_minus_one_count }} ({{ meta1.minus_one_percentage_display }})</li>
+
+                        <li><strong>Value -2 (unconfirmed):</strong> {{ meta1.special_minus_two_count }} ({{ meta1.minus_two_percentage_display }})</li>
+
+                        <li><strong>Genuine zero:</strong> {{ meta1.valid_zero_pixel_count }} ({{ meta1.valid_zero_percentage_display }})</li>
+
+                        <li><strong>Positive SWE:</strong> {{ meta1.positive_pixel_count }} ({{ meta1.positive_percentage_display }})</li>
+
                         <li><strong>NaN replaced:</strong> {{ meta1.nan_count }}</li>
                         <li><strong>Infinity replaced:</strong> {{ meta1.inf_count }}</li>
                         <li><strong>Resized:</strong> {{ "Yes" if meta1.resized else "No" }}</li>
@@ -126,15 +162,23 @@
                         <li><strong>Original:</strong> {{ meta2.original_dimensions }}</li>
                         <li><strong>Processed:</strong> {{ meta2.processed_dimensions }}</li>
                         <li><strong>Normalization:</strong> /255</li>
-                        <li><strong>NoData pixels:</strong> {{ meta2.nodata_pixel_count }}</li>
-                        <li><strong>NoData percentage:</strong> {{ meta2.nodata_percentage_display }}</li>
-                        <li><strong>Valid zero pixels:</strong> {{ meta2.valid_zero_pixel_count }}</li>
-                        <li><strong>Valid zero percentage:</strong> {{ meta2.valid_zero_percentage_display }}</li>
+
+                        <li><strong>NoData (-32768):</strong> {{ meta2.nodata_pixel_count }} ({{ meta2.nodata_percentage_display }})</li>
+
+                        <li><strong>Value -1 (unconfirmed):</strong> {{ meta2.special_minus_one_count }} ({{ meta2.minus_one_percentage_display }})</li>
+
+                        <li><strong>Value -2 (unconfirmed):</strong> {{ meta2.special_minus_two_count }} ({{ meta2.minus_two_percentage_display }})</li>
+
+                        <li><strong>Genuine zero:</strong> {{ meta2.valid_zero_pixel_count }} ({{ meta2.valid_zero_percentage_display }})</li>
+
+                        <li><strong>Positive SWE:</strong> {{ meta2.positive_pixel_count }} ({{ meta2.positive_percentage_display }})</li>
+
                         <li><strong>NaN replaced:</strong> {{ meta2.nan_count }}</li>
                         <li><strong>Infinity replaced:</strong> {{ meta2.inf_count }}</li>
                         <li><strong>Resized:</strong> {{ "Yes" if meta2.resized else "No" }}</li>
                     </ul>
                 </div>
+
             </div>
         </section>
     </main>
